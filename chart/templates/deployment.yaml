@@ -3,18 +3,25 @@ kind: Deployment
 metadata:
   name: {{ .Release.Name }}
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: my-app
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: my-app
+        app: {{ .Release.Name }}
     spec:
       containers:
         - name: my-app
-          image: quay.csssr.cloud/csssr/test-app:{{ .Values.image.tag }}
+          image: armanzor/csssr:{{ .Values.image.tag }}
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 250m
+            limits:
+              memory: 128Mi
+              cpu: 500m
           imagePullPolicy: Always
           env:
             - name: PORT
@@ -23,10 +30,24 @@ spec:
               value: /data/image
           ports:
             - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /healthz/liveness
+              port: 80
+            initialDelaySeconds: 1
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz/readiness
+              port: 80
+            initialDelaySeconds: 1
+            periodSeconds: 3
           volumeMounts:
             - name: data
               mountPath: /data
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: my-app
+            claimName: {{ .Release.Name }}
+      imagePullSecrets:
+        - name: regcred

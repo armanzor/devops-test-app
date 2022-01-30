@@ -27,7 +27,7 @@ curl http://my-app.com/image -o image.jpg
 Сборка
 
 ```sh
-make build BRANCH=master
+make build-app BRANCH=master
 ```
 
 Деплой helm чарта (используется helm 3)
